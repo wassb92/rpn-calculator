@@ -14,8 +14,8 @@ Ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd <repository-folder>
+   git clone https://github.com/wassb92/rpn-calculator.git
+   cd server
 ```
 
 ### 2. Set Up Environment Variables
