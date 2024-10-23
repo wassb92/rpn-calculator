@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # FastAPI application service
+  app:
+    # Build the image using the current directory (where Dockerfile is located)
+    build: .
+    # Name the container for the FastAPI application
+    container_name: fastapi_app
+    # Map the container's port 8000 to the host's port 8000
+    ports:
+      - "8000:8000"
+    # Ensure the app service starts only after the db service is ready
+    depends_on:
+      - db
+    # Define environment variables, including the database connection URL
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/npi_db
+    # Mount the current directory as a volume inside the container
+    volumes:
+      - .:/app
+    # Connect the app to the defined network
+    networks:
+      - app-network
+
+  # PostgreSQL database service
+  db:
+    # Use the official PostgreSQL 13 image
+    image: postgres:13
+    # Name the container for the PostgreSQL database
+    container_name: postgres_db
+    # Set environment variables for the PostgreSQL configuration
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: npi_db
+    # Map the host's port 5434 to the container's port 5432 (to avoid port conflicts)
+    ports:
+      - "5434:5432"
+    # Connect the db service to the same network as the app service
+    networks:
+      - app-network
+    # Persist database data to a Docker volume
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Health check to verify if PostgreSQL is ready before starting other services
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      retries: 5
+
+# Define the network that both services will use
+networks:
+  app-network:
+    driver: bridge
+
+# Define a persistent volume to store PostgreSQL data
+volumes:
+  postgres_data:
+    driver: local
